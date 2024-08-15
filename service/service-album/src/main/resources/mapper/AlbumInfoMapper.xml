@@ -1,11 +1,51 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
-"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
-
-
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.atguigu.tingshu.album.mapper.AlbumInfoMapper">
-
+<!--分页条件查询专辑的列表-->
+<select id="selectAlbumListVoByQuery"
+        parameterType="com.atguigu.tingshu.query.album.AlbumInfoQuery"
+    resultType="com.atguigu.tingshu.vo.album.AlbumListVo"
+>
+    SELECT
+        t1.id AS albumId,
+        t1.album_title AS albumTitle,
+        t1.cover_url AS coverUrl,
+        t1.include_track_count AS includeTrackCount,
+        t1.is_finished AS isFinished,
+        t1.`status` AS STATUS,
+        max(
+                IF
+                ( t2.stat_type = '0401', t2.stat_num, 0 )) AS playStatNum,
+        max(
+                IF
+                ( t2.stat_type = '0402', t2.stat_num, 0 )) AS subscribeStatNum,
+        max(
+                IF
+                ( t2.stat_type = '0403', t2.stat_num, 0 )) AS buyStatNum,
+        max(
+                IF
+                ( t2.stat_type = '0404', t2.stat_num, 0 )) AS albumCommentStatNum
+    FROM
+        album_info t1
+            INNER JOIN album_stat t2 ON t1.id = t2.album_id
+    <where>
+        <if test="vo.userId != null">
+        AND t1.user_id = #{vo.userId}
+        </if>
+        <if  test="vo.status != null and vo.status !=''">
+        AND t1.STATUS = #{vo.status}
+        </if>
+        <if test="vo.albumTitle != null and vo.albumTitle !=''">
+            AND t1.album_title LIKE CONCAT( '%', #{vo.albumTitle}, '%' )
+        </if>
+            AND t1.is_deleted = 0
+    </where>
+    GROUP BY
+        t1.id
+    ORDER BY
+        t1.id DESC
+</select>
 
 </mapper>
 
